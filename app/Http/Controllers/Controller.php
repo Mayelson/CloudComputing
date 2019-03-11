@@ -3,19 +3,62 @@
 namespace App\Http\Controllers;
 use App\Voter as voter;
 
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
     
-    function user () {
-    	$voters = voter::paginate(15);;
-    	var_dump($voters);
-   		die();
+    function voter () {
+    	//$paginatedSearchResults = voter::paginate(100);
+    	//var_dump($voters);
+		   //die();
+			//Get current page form url e.g. &page=6
+		$currentPage = LengthAwarePaginator::resolveCurrentPage();
+			
+		$number = $currentPage*100 - 100;
+			
+		$items = voter::where('id','>',$number)->take(100)->get();;
+		
+
+		//Create a new Laravel collection from the array data
+		$collection = new Collection($items);
+
+		//Define how many items we want to be visible in each page
+		$perPage = 100;
+
+		//Slice the collection to get the items to display in current page
+		//$currentPageSearchResults = $collection->slice($currentPage * $perPage, $perPage)->all();
+
+		//Create our paginator and pass it to the view
+		$paginatedSearchResults = new LengthAwarePaginator($collection, 10000000, $perPage);
+
+	return $paginatedSearchResults;
+	}
+
+	function vote (Request $request, $id) {
+		//var_dump($id);
+
+		$voter = Voter::find($id);
+		//echo ($voter);
+		if($voter->has_voted == 1){
+			return response("",409);
+		}else{
+			$voter->has_voted = 1;
+			$voter->save();
+			return response("",200);
+		}
+	}
+
+	function voteReset () {
+		Voter::where('has_voted', 1)->update(['has_voted' => 0]);
+		return response("",200);
 	}
 }
