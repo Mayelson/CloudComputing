@@ -21,6 +21,7 @@ class Controller extends BaseController
     	//var_dump($voters);
 		   //die();
 			//Get current page form url e.g. &page=6
+			$response = [];
 		$currentPage = LengthAwarePaginator::resolveCurrentPage();
 			
 		$number = $currentPage*100 - 100;
@@ -38,23 +39,39 @@ class Controller extends BaseController
 		//$currentPageSearchResults = $collection->slice($currentPage * $perPage, $perPage)->all();
 
 		//Create our paginator and pass it to the view
-		$paginatedSearchResults = new LengthAwarePaginator($collection, 10000000, $perPage);
-
-	return $paginatedSearchResults;
+		//$paginatedSearchResults = new LengthAwarePaginator($collection, 10000000, $perPage);
+		//$paginatedSearchResults
+		//echo $json;
+		$response ['data']  = $collection;
+		$response ['meta'] ['current_page'] =  $currentPage;
+		$response ['meta'] ['total'] = 10000000 ;
+		$response ['meta'] ['next_page'] =  '/?page='.(String)($currentPage+1);
+		$response ['meta'] ['records_on_data'] =  $perPage;
+		$response ['meta'] ['handled_by'] = $_SERVER['SERVER_ADDR'];
+		return $response;
 	}
 
 	function vote (Request $request, $id) {
 		//var_dump($id);
-
+		$response ['meta'] ['handled_by'] = $_SERVER['SERVER_ADDR'];
 		$voter = Voter::find($id);
 		//echo ($voter);
-		if($voter->has_voted == 1){
-			return response("",409);
-		}else{
-			$voter->has_voted = 1;
-			$voter->save();
-			return response("",200);
+		try {
+			if($voter->has_voted == 1){
+				$response ['msg'] = "Voter has already voted";
+
+				return response($response,409);
+			}else{
+				$voter->has_voted = 1;
+				$voter->save();
+				
+				return response($response,200);
+			}
+		} catch (Exception $e) {
+			$response = "Something went wrong when processing vote";
+			return response($response,409);
 		}
+		
 	}
 
 	function voteReset () {
