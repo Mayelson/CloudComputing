@@ -46,7 +46,18 @@ class Controller extends BaseController
 		}*/
 		//dd($sections1);
 		//
-        return Cache::get(1);
+		$response = [
+            'data' => Cache::get(1),
+            'status' => 'OK',
+            'code' => 200,
+            'meta' => [
+				
+            'records_on_data' => 50000,
+            'handled_by' => $_SERVER['SERVER_ADDR']
+            ]
+        ];
+		
+        return $response;
     }
 
     function votersByName($params) {
