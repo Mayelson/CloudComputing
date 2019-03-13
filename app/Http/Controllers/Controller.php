@@ -19,6 +19,46 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
     
+
+        //Voter with id = XXX
+     function votersById($id){
+        $voters = voter::find($id);
+
+      	$response = [
+            'data' => $id,
+            'status' => 'OK',
+            'code' => 200,
+            'meta' => [
+            'records_on_data' => 1,
+            'handled_by' => $_SERVER['SERVER_ADDR']
+            ]
+        ];
+		
+        return $response;
+
+    }
+
+      //Voters that are registered on the section XXX. Only returns the first 1000 voters.
+    function votersBySection($id){
+        $sections = voter::where('section', '=', $id)->take(1000)->get();
+
+		$sectionsCollection = new Collection($sections);
+
+
+        $response = [
+            'data' => $sectionsCollection,
+            'status' => 'OK',
+            'code' => 200,
+            'meta' => [
+            'records_on_data' => ,
+            'handled_by' => $_SERVER['SERVER_ADDR']
+            ]
+        ];
+		
+        return $response;
+
+    }
+
     function votersSections() {
         //$paginatorLength = LengthAwarePaginator::resolveCurrentPage() * 50 - 50;
 		//$itemsPerPage = 50;
