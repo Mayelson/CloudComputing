@@ -13,4 +13,6 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::get('user/', 'Controller@user');
+
+Route::get('voters/name/{params}', 'Controller@votersByName');
+Route::get('sections', 'Controller@votersSections');
