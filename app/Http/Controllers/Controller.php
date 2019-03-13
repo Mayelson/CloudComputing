@@ -37,13 +37,14 @@ class Controller extends BaseController
 
         switch ($type_condition) {
             case 'equal':
-                $voters = voter::where('id', '>', $number)->where('name', '=', $name)->take(100)->get();
+                $voters = voter::where('id', '>', $number)->where('name', '=', $name)->take(1000)->get();
                 break;
             case 'start':
-                $voters = voter::where('id', '>', $number)->where('name', 'like', $name.'%')->take(100)->get();
+                $voters = voter::where('id', '>', $number)->where('name', 'like', $name.'%')->take(1000)->get();
                 break;
             case 'include':
-                $voters = voter::where('id', '>', $number)->where('name', 'like', $name)->take(100)->get();
+                $voters = voter::where('id', '>', $number)->where('name', 'like', $name)->take(1000)->get();
+                break;
             default:
                 return response("",404);
                 break;
@@ -67,4 +68,67 @@ class Controller extends BaseController
         return $response;
     }
 
+    function voter () {
+    	//$paginatedSearchResults = voter::paginate(100);
+    	//var_dump($voters);
+		   //die();
+			//Get current page form url e.g. &page=6
+			$response = [];
+		$currentPage = LengthAwarePaginator::resolveCurrentPage();
+			
+		$number = $currentPage*100 - 100;
+			
+		$items = voter::where('id','>',$number)->take(100)->get();;
+		
+
+		//Create a new Laravel collection from the array data
+		$collection = new Collection($items);
+
+		//Define how many items we want to be visible in each page
+		$perPage = 100;
+
+		//Slice the collection to get the items to display in current page
+		//$currentPageSearchResults = $collection->slice($currentPage * $perPage, $perPage)->all();
+
+		//Create our paginator and pass it to the view
+		//$paginatedSearchResults = new LengthAwarePaginator($collection, 10000000, $perPage);
+		//$paginatedSearchResults
+		//echo $json;
+		$response ['data']  = $collection;
+		$response ['meta'] ['current_page'] =  $currentPage;
+		$response ['meta'] ['total'] = 10000000 ;
+		$response ['meta'] ['next_page'] =  '/?page='.(String)($currentPage+1);
+		$response ['meta'] ['records_on_data'] =  $perPage;
+		$response ['meta'] ['handled_by'] = $_SERVER['SERVER_ADDR'];
+		return $response;
+	}
+
+	function vote (Request $request, $id) {
+		//var_dump($id);
+		$response ['meta'] ['handled_by'] = $_SERVER['SERVER_ADDR'];
+		$voter = Voter::find($id);
+		//echo ($voter);
+		try {
+			if($voter->has_voted == 1){
+				$response ['msg'] = "Voter has already voted";
+
+				return response($response,409);
+			}else{
+				$voter->has_voted = 1;
+				$voter->save();
+				
+				return response($response,200);
+			}
+		} catch (Exception $e) {
+			$response = "Something went wrong when processing vote";
+			return response($response,409);
+		}
+		
+	}
+
+	function voteReset () {
+		Voter::where('has_voted', 1)->update(['has_voted' => 0]);
+		return response("",200);
+	}
 }
+

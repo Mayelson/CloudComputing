@@ -8,5 +8,4 @@ class Voter extends Model
 {
 	protected $table = 'voters';
 	public $timestamps = false;
-
 }
