@@ -20,4 +20,6 @@ Route::get('sections', 'Controller@votersSections');
 Route::get('voters/', 'Controller@voter');
 Route::patch('/voters/{id}/vote', 'Controller@vote');
 Route::patch('/voters/reset', 'Controller@voteReset');
+Route::get('voters/{id}', 'Controller@votersById');
+Route::get('voters/sections/{id}', 'Controller@votersBySection');
 
