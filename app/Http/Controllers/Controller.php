@@ -12,6 +12,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 
 class Controller extends BaseController
@@ -19,13 +20,33 @@ class Controller extends BaseController
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
     
     function votersSections() {
-        $paginatorLength = LengthAwarePaginator::resolveCurrentPage() * 50 - 50;
-        $itemsPerPage = 50;
-        $sections = voter::select('section', DB::raw('count(*) as total'))->where('id', '>', $paginatorLength)->groupBy('section')->take(50)->get();
-        $sectionsCollection = new Collection($sections);
-        $result = new LengthAwarePaginator($sectionsCollection, 10000000, $itemsPerPage);
+        //$paginatorLength = LengthAwarePaginator::resolveCurrentPage() * 50 - 50;
+		//$itemsPerPage = 50;
+		//Cache::flush();
+		if(!Cache::has(1)){
+			$sections1 = voter::select('section', DB::raw('count(id) as total'))->groupBy('section')->get();
+			//echo "db";
+			Cache::put(1, $sections1, now()->addMinutes(1440));
+		}
+		
+		//$sections2 = voter::select( DB::raw('distinct(section) as sections'))->get();
+		//$sections = $sections1->add($sections2);
+		
+		//$sectionsCollection = new Collection($sections1);
+		//$result = new LengthAwarePaginator($sectionsCollection, 5000, $itemsPerPage);
+	
+		//->where('id', '>', $paginatorLength)
+		//->take(50)
+		//Cache::flush();
+		//Cache::put(1, $sections1, now()->addMinutes(60));
+		/*foreach($sections1->keyBy('section') as $item){
+			Cache::put($item['section'], $item['total'], now()->addMinutes(60));
 
-        return $result;
+			//echo ($item['total']);
+		}*/
+		//dd($sections1);
+		//
+        return Cache::get(1);
     }
 
     function votersByName($params) {
@@ -52,12 +73,12 @@ class Controller extends BaseController
         
         $votersCollection = new Collection($voters);
         $response = [
-            'body' => $votersCollection,
+            'data' => $votersCollection,
             'status' => 'OK',
             'code' => 200,
             'meta' => [
-
-            'current_page' => $currentPage,
+				
+				'current_page' => $currentPage,
             'total' => 10000000,
             'next_page' => '/?page='.(String)($currentPage+1),
             'prev_page' => '/?page='.(String)($currentPage-1),
@@ -98,8 +119,10 @@ class Controller extends BaseController
 		$response ['meta'] ['current_page'] =  $currentPage;
 		$response ['meta'] ['total'] = 10000000 ;
 		$response ['meta'] ['next_page'] =  '/?page='.(String)($currentPage+1);
+		$response ['meta'] ['prev_page'] = '/?page='.(String)($currentPage-1);
 		$response ['meta'] ['records_on_data'] =  $perPage;
 		$response ['meta'] ['handled_by'] = $_SERVER['SERVER_ADDR'];
+		
 		return $response;
 	}
 
