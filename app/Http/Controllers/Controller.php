@@ -25,11 +25,11 @@ class Controller extends BaseController
         $voters = voter::find($id);
 
       	$response = [
-            'data' => $id,
-            'status' => 'OK',
-            'code' => 200,
+            'data' => $voters,
+           // 'status' => 'OK',
+            //'code' => 200,
             'meta' => [
-            'records_on_data' => 1,
+            'records_on_data' => $voters->count(),
             'handled_by' => $_SERVER['SERVER_ADDR']
             ]
         ];
@@ -37,6 +37,22 @@ class Controller extends BaseController
         return $response;
 
     }
+    
+    function voterNumber($id) {
+            $voter = voter::where('voter_number','=',$id)->get();
+            
+            $response = [
+                'data' => $voter,
+              //  'status' => 'OK',
+                //'code' => 200,
+                'meta' => [
+                'records_on_data' => $voter->count(),
+                'handled_by' => $_SERVER['SERVER_ADDR']
+                ]
+            ];
+            return $response;
+    }
+
 
       //Voters that are registered on the section XXX. Only returns the first 1000 voters.
     function votersBySection($id){
@@ -47,10 +63,10 @@ class Controller extends BaseController
 
         $response = [
             'data' => $sectionsCollection,
-            'status' => 'OK',
-            'code' => 200,
+            //'status' => 'OK',
+            //'code' => 200,
             'meta' => [
-            'records_on_data' => ,
+            'records_on_data' => $sectionsCollection->count(),
             'handled_by' => $_SERVER['SERVER_ADDR']
             ]
         ];
@@ -88,11 +104,11 @@ class Controller extends BaseController
 		//
 		$response = [
             'data' => Cache::get(1),
-            'status' => 'OK',
-            'code' => 200,
+            //'status' => 'OK',
+            //'code' => 200,
             'meta' => [
 				
-            'records_on_data' => 50000,
+            'records_on_data' => 5000,
             'handled_by' => $_SERVER['SERVER_ADDR']
             ]
         ];
@@ -103,9 +119,7 @@ class Controller extends BaseController
     function votersByName($params) {
         $type_condition = explode("=", $params)[0];
         $name = explode("=", $params)[1];
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $number = $currentPage * 1000 - 1000;
-        $itemsPerPage = 1000;
+       
 
         switch ($type_condition) {
             case 'equal':
@@ -122,18 +136,14 @@ class Controller extends BaseController
                 break;
         }
         
-        $votersCollection = new Collection($voters);
+        //$votersCollection = new Collection($voters);
         $response = [
-            'data' => $votersCollection,
-            'status' => 'OK',
-            'code' => 200,
+            'data' => $voters,
+            //'status' => 'OK',
+            //'code' => 200,
             'meta' => [
 				
-				'current_page' => $currentPage,
-            'total' => 10000000,
-            'next_page' => '/?page='.(String)($currentPage+1),
-            'prev_page' => '/?page='.(String)($currentPage-1),
-            'item_per_page' => $itemsPerPage,
+            'records_on_data' => $voters->count(),
             'handled_by' => $_SERVER['SERVER_ADDR']
             ],
         ];

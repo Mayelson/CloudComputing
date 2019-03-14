@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 
 Route::get('voters/name/{params}', 'Controller@votersByName');
 Route::get('sections', 'Controller@votersSections');
+Route::get('voters/voter_number/{id}', 'Controller@voterNumber');
 
 Route::get('voters/', 'Controller@voter');
 Route::patch('/voters/{id}/vote', 'Controller@vote');
