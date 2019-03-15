@@ -28,27 +28,19 @@ class Controller extends BaseController
         return $result;
     }
 
-    function votersByName($params) {
-        $type_condition = explode("=", $params)[0];
-        $name = explode("=", $params)[1];
+    function votersByName(Request $params) {
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
         $number = $currentPage * 1000 - 1000;
         $itemsPerPage = 1000;
-
-        switch ($type_condition) {
-            case 'equal':
-                $voters = voter::where('id', '>', $number)->where('name', '=', $name)->take(1000)->get();
-                break;
-            case 'start':
-                $voters = voter::where('id', '>', $number)->where('name', 'like', $name.'%')->take(1000)->get();
-                break;
-            case 'include':
-                $voters = voter::where('id', '>', $number)->where('name', 'like', $name)->take(1000)->get();
-                break;
-            default:
-                return response("",404);
-                break;
-        }
+    	if($params->query('equal') != null){
+    		$voters = voter::where('id', '>', $number)->where('name', '=', $params->query('equal'))->take(1000)->get();
+    	} elseif ($params->query('start') != null) {
+    		$voters = voter::where('id', '>', $number)->where('name', 'like', $params->query('start').'%')->take(1000)->get();
+    	} elseif ($params->query('include') != null) {
+    		$voters = voter::where('id', '>', $number)->where('name', 'like', '%'.$params->query('include').'%')->take(1000)->get();
+    	} else {
+    		return response("",404);
+    	}
         
         $votersCollection = new Collection($voters);
         $response = [

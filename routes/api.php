@@ -12,9 +12,7 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
-
-Route::get('voters/name/{params}', 'Controller@votersByName');
+Route::get('voters/name', 'Controller@votersByName');
 Route::get('sections', 'Controller@votersSections');
 
 Route::get('voters/', 'Controller@voter');
