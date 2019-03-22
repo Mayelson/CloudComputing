@@ -21,12 +21,16 @@ class Controller extends BaseController
     
      function votersById($id){
         $voters = voter::find($id);
-
+        if($voters == null){
+            $number_voters = 0;
+        }else {
+            $number_voters = 1;
+        }
       	$response = [
-            'data' => $voters,
             'meta' => [
-            'records_on_data' => $voters->count(),
-            'handled_by' => $_SERVER['SERVER_ADDR']
+            'records_on_data' => $number_voters,
+            'handled_by' => $_SERVER['SERVER_ADDR'],
+            'data' => $voters
             ]
         ];
 		
@@ -36,11 +40,15 @@ class Controller extends BaseController
     
     function voterNumber($id) {
             $voter = voter::where('voter_number','=',$id)->get();
-            
+            if($voter == null){
+                $number_voters = 0;
+            }else {
+                $number_voters = $voter->count();
+            }
             $response = [
                 'data' => $voter,
                 'meta' => [
-                'records_on_data' => $voter->count(),
+                'records_on_data' => $number_voters,
                 'handled_by' => $_SERVER['SERVER_ADDR']
                 ]
             ];
@@ -51,36 +59,40 @@ class Controller extends BaseController
       //Voters that are registered on the section XXX. Only returns the first 1000 voters.
     function votersBySection($id){
         $sections = voter::where('section', '=', $id)->take(1000)->get();
-		$sectionsCollection = new Collection($sections);
+        if($sections == null){
+            $number_voters = 0;
+        }else{
+            $number_voters = $sections->count();
+        }
 
         $response = [
-            'data' => $sectionsCollection,
             'meta' => [
-            'records_on_data' => $sectionsCollection->count(),
-            'handled_by' => $_SERVER['SERVER_ADDR']
+            'records_on_data' =>$number_voters,
+            'handled_by' => $_SERVER['SERVER_ADDR'],
+            'data' => $sections
             ]
         ];
 		
         return $response;
-
     }
 
     function votersSections() {
 		if(!Cache::has(1)){
 			$sections1 = voter::select('section', DB::raw('count(id) as total'))->groupBy('section')->get();
-			Cache::put(1, $sections1, now()->addMinutes(1440));
+			Cache::put(1, $sections1, now()->addMinutes(6440));
 		}
 		
 		$response = [
-            'data' => Cache::get(1),
             'meta' => [
             'records_on_data' => 5000,
-            'handled_by' => $_SERVER['SERVER_ADDR']
+            'handled_by' => $_SERVER['SERVER_ADDR'],
+            'data' => Cache::get(1)
             ]
         ];
 		
         return $response;
     }
+
 
     function votersByName(Request $params) {
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
@@ -95,13 +107,17 @@ class Controller extends BaseController
     	} else {
     		return response("",404);
     	}
-
+        if ($voters == null) {
+            $number_voters = 0;
+        } else {
+            $number_voters = count($voters);
+        }
         $response = [
-            'data' => $voters,
-            'meta' => [
-            'records_on_data' => $voters->count(),
-            'handled_by' => $_SERVER['SERVER_ADDR']
+            'meta' => [				
+                'records_on_data' => $number_voters,
+                'handled_by' => $_SERVER['SERVER_ADDR']
             ],
+            'data' => $voters
         ];
         return $response;
     }
