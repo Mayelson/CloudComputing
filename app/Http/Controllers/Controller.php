@@ -12,20 +12,74 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
     
-    function votersSections() {
-        $paginatorLength = LengthAwarePaginator::resolveCurrentPage() * 50 - 50;
-        $itemsPerPage = 50;
-        $sections = voter::select('section', DB::raw('count(*) as total'))->where('id', '>', $paginatorLength)->groupBy('section')->take(50)->get();
-        $sectionsCollection = new Collection($sections);
-        $result = new LengthAwarePaginator($sectionsCollection, 10000000, $itemsPerPage);
+     function votersById($id){
+        $voters = voter::find($id);
 
-        return $result;
+      	$response = [
+            'data' => $voters,
+            'meta' => [
+            'records_on_data' => $voters->count(),
+            'handled_by' => $_SERVER['SERVER_ADDR']
+            ]
+        ];
+		
+        return $response;
+
+    }
+    
+    function voterNumber($id) {
+            $voter = voter::where('voter_number','=',$id)->get();
+            
+            $response = [
+                'data' => $voter,
+                'meta' => [
+                'records_on_data' => $voter->count(),
+                'handled_by' => $_SERVER['SERVER_ADDR']
+                ]
+            ];
+            return $response;
+    }
+
+
+      //Voters that are registered on the section XXX. Only returns the first 1000 voters.
+    function votersBySection($id){
+        $sections = voter::where('section', '=', $id)->take(1000)->get();
+		$sectionsCollection = new Collection($sections);
+
+        $response = [
+            'data' => $sectionsCollection,
+            'meta' => [
+            'records_on_data' => $sectionsCollection->count(),
+            'handled_by' => $_SERVER['SERVER_ADDR']
+            ]
+        ];
+		
+        return $response;
+
+    }
+
+    function votersSections() {
+		if(!Cache::has(1)){
+			$sections1 = voter::select('section', DB::raw('count(id) as total'))->groupBy('section')->get();
+			Cache::put(1, $sections1, now()->addMinutes(1440));
+		}
+		
+		$response = [
+            'data' => Cache::get(1),
+            'meta' => [
+            'records_on_data' => 5000,
+            'handled_by' => $_SERVER['SERVER_ADDR']
+            ]
+        ];
+		
+        return $response;
     }
 
     function votersByName(Request $params) {
@@ -41,19 +95,11 @@ class Controller extends BaseController
     	} else {
     		return response("",404);
     	}
-        
-        $votersCollection = new Collection($voters);
-        $response = [
-            'body' => $votersCollection,
-            'status' => 'OK',
-            'code' => 200,
-            'meta' => [
 
-            'current_page' => $currentPage,
-            'total' => 10000000,
-            'next_page' => '/?page='.(String)($currentPage+1),
-            'prev_page' => '/?page='.(String)($currentPage-1),
-            'item_per_page' => $itemsPerPage,
+        $response = [
+            'data' => $voters,
+            'meta' => [
+            'records_on_data' => $voters->count(),
             'handled_by' => $_SERVER['SERVER_ADDR']
             ],
         ];
@@ -61,45 +107,33 @@ class Controller extends BaseController
     }
 
     function voter () {
-    	//$paginatedSearchResults = voter::paginate(100);
-    	//var_dump($voters);
-		   //die();
-			//Get current page form url e.g. &page=6
-			$response = [];
+		//Get current page form url e.g. &page=6
+		$response = [];
 		$currentPage = LengthAwarePaginator::resolveCurrentPage();
 			
 		$number = $currentPage*100 - 100;
 			
 		$items = voter::where('id','>',$number)->take(100)->get();;
 		
-
 		//Create a new Laravel collection from the array data
 		$collection = new Collection($items);
 
 		//Define how many items we want to be visible in each page
 		$perPage = 100;
-
-		//Slice the collection to get the items to display in current page
-		//$currentPageSearchResults = $collection->slice($currentPage * $perPage, $perPage)->all();
-
-		//Create our paginator and pass it to the view
-		//$paginatedSearchResults = new LengthAwarePaginator($collection, 10000000, $perPage);
-		//$paginatedSearchResults
-		//echo $json;
 		$response ['data']  = $collection;
 		$response ['meta'] ['current_page'] =  $currentPage;
 		$response ['meta'] ['total'] = 10000000 ;
 		$response ['meta'] ['next_page'] =  '/?page='.(String)($currentPage+1);
+		$response ['meta'] ['prev_page'] = '/?page='.(String)($currentPage-1);
 		$response ['meta'] ['records_on_data'] =  $perPage;
 		$response ['meta'] ['handled_by'] = $_SERVER['SERVER_ADDR'];
+		
 		return $response;
 	}
 
 	function vote (Request $request, $id) {
-		//var_dump($id);
 		$response ['meta'] ['handled_by'] = $_SERVER['SERVER_ADDR'];
 		$voter = Voter::find($id);
-		//echo ($voter);
 		try {
 			if($voter->has_voted == 1){
 				$response ['msg'] = "Voter has already voted";
