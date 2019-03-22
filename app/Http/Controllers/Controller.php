@@ -136,14 +136,17 @@ class Controller extends BaseController
 
 		//Define how many items we want to be visible in each page
 		$perPage = 100;
-		$response ['meta'] ['current_page'] =  $currentPage;
-		$response ['meta'] ['total'] = 10000000 ;
-		$response ['meta'] ['next_page'] =  '/?page='.(String)($currentPage+1);
-		$response ['meta'] ['prev_page'] = '/?page='.(String)($currentPage-1);
-		$response ['meta'] ['records_on_data'] =  $perPage;
-		$response ['meta'] ['handled_by'] = $_SERVER['SERVER_ADDR'];
-        $response ['data']  = $collection;
-		
+        $response = [
+            'meta' => [
+               'current_page' =>  $currentPage,
+               'total' => 10000000,
+               'next_page' =>  '/?page='.(String)($currentPage+1),
+               'prev_page' => '/?page='.(String)($currentPage-1),
+               'records_on_data' =>  $perPage,
+               'handled_by' => $_SERVER['SERVER_ADDR']
+            ],
+            'data' => $collection
+        ];	
 		return $response;
 	}
 
