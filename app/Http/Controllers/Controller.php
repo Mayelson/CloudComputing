@@ -30,8 +30,8 @@ class Controller extends BaseController
             'meta' => [
             'records_on_data' => $number_voters,
             'handled_by' => $_SERVER['SERVER_ADDR'],
+            ],
             'data' => $voters
-            ]
         ];
 		
         return $response;
@@ -46,11 +46,11 @@ class Controller extends BaseController
                 $number_voters = $voter->count();
             }
             $response = [
-                'data' => $voter,
                 'meta' => [
                 'records_on_data' => $number_voters,
                 'handled_by' => $_SERVER['SERVER_ADDR']
-                ]
+                ],
+                'data' => $voter
             ];
             return $response;
     }
@@ -69,8 +69,8 @@ class Controller extends BaseController
             'meta' => [
             'records_on_data' =>$number_voters,
             'handled_by' => $_SERVER['SERVER_ADDR'],
+            ],
             'data' => $sections
-            ]
         ];
 		
         return $response;
@@ -86,8 +86,8 @@ class Controller extends BaseController
             'meta' => [
             'records_on_data' => 5000,
             'handled_by' => $_SERVER['SERVER_ADDR'],
+            ],
             'data' => Cache::get(1)
-            ]
         ];
 		
         return $response;
@@ -136,13 +136,13 @@ class Controller extends BaseController
 
 		//Define how many items we want to be visible in each page
 		$perPage = 100;
-		$response ['data']  = $collection;
 		$response ['meta'] ['current_page'] =  $currentPage;
 		$response ['meta'] ['total'] = 10000000 ;
 		$response ['meta'] ['next_page'] =  '/?page='.(String)($currentPage+1);
 		$response ['meta'] ['prev_page'] = '/?page='.(String)($currentPage-1);
 		$response ['meta'] ['records_on_data'] =  $perPage;
 		$response ['meta'] ['handled_by'] = $_SERVER['SERVER_ADDR'];
+        $response ['data']  = $collection;
 		
 		return $response;
 	}
